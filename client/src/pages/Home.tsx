@@ -16,7 +16,7 @@ import TeamList from '@/components/TeamList';
 import TeamDetail from '@/components/TeamDetail';
 import StatsBar from '@/components/StatsBar';
 import { teams, type Team, HERO_BANNER, leagueStats } from '@/data/teams';
-import { Trophy, Map, ArrowLeft, ChevronRight, MapPin, Shield, Star } from 'lucide-react';
+import { Trophy, Map, ArrowLeft, ChevronRight, MapPin, Shield, Medal } from 'lucide-react';
 import { projectLogo } from '@/data/feature-data';
 import { routePath, assetPath } from '@/lib/sitePaths';
 import { useIsMobile } from '@/hooks/useMobile';
@@ -31,6 +31,44 @@ const LIFE_LAYER_OPTIONS: { key: LifeLayerKey; label: string }[] = [
   { key: 'parking', label: '停车' },
   { key: 'cuisine', label: '湘菜' },
 ];
+
+const TOP_RANK_MEDALS: Record<number, {
+  label: string;
+  medalColor: string;
+  bgClass: string;
+  borderClass: string;
+  textClass: string;
+  shadow: string;
+}> = {
+  1: {
+    label: '冠军',
+    medalColor: '#F5B301',
+    bgClass: 'bg-amber-50',
+    borderClass: 'border-amber-200',
+    textClass: 'text-amber-600',
+    shadow: '0 8px 20px rgba(245, 179, 1, 0.20)',
+  },
+  2: {
+    label: '亚军',
+    medalColor: '#A7B0BE',
+    bgClass: 'bg-slate-50',
+    borderClass: 'border-slate-200',
+    textClass: 'text-slate-500',
+    shadow: '0 8px 20px rgba(148, 163, 184, 0.22)',
+  },
+  3: {
+    label: '季军',
+    medalColor: '#C77B30',
+    bgClass: 'bg-orange-50',
+    borderClass: 'border-orange-200',
+    textClass: 'text-orange-600',
+    shadow: '0 8px 20px rgba(199, 123, 48, 0.20)',
+  },
+};
+
+function getTopRankMedal(team: Team) {
+  return TOP_RANK_MEDALS[team.rank];
+}
 
 export default function Home() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -433,7 +471,24 @@ export default function Home() {
                     className="absolute inset-0 opacity-10"
                     style={{ background: `radial-gradient(circle at 30% 20%, ${mobileDisplayTeam.color}, transparent 56%)` }}
                   />
-                  <img src={projectLogo} alt="湘超联赛" className="relative z-10 h-full w-full object-contain p-2" />
+                  <img
+                    src={assetPath(`assets/badges/${mobileDisplayTeam.id}.jpg`)}
+                    alt={`${mobileDisplayTeam.name}队徽`}
+                    className="relative z-10 h-full w-full object-cover"
+                    onError={(event) => {
+                      const target = event.currentTarget;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling;
+                      fallback?.classList.remove('hidden');
+                      fallback?.classList.add('flex');
+                    }}
+                  />
+                  <span
+                    className="team-crest-fallback hidden relative z-10 h-full w-full items-center justify-center text-xl font-black text-white"
+                    style={{ background: `linear-gradient(135deg, ${mobileDisplayTeam.color}, ${mobileDisplayTeam.color}CC)`, fontFamily: "'Noto Serif SC', serif" }}
+                  >
+                    {mobileDisplayTeam.name.slice(0, 1)}
+                  </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="truncate text-xl font-black text-[oklch(0.18_0.02_260)]" style={{ fontFamily: "'Noto Serif SC', serif" }}>
@@ -445,10 +500,22 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-600">
-                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                    {mobileDisplayTeam.rankLabel}
-                  </span>
+                  {(() => {
+                    const medal = getTopRankMedal(mobileDisplayTeam);
+                    return medal ? (
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${medal.bgClass} ${medal.borderClass} ${medal.textClass}`}
+                        style={{ boxShadow: medal.shadow }}
+                      >
+                        <Medal className="h-3.5 w-3.5" style={{ color: medal.medalColor }} />
+                        {medal.label}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-lg border border-[oklch(0.90_0.005_260)] bg-white px-2.5 py-1 text-xs font-black text-[oklch(0.42_0.02_260)]">
+                        {mobileDisplayTeam.rankLabel}
+                      </span>
+                    );
+                  })()}
                   <ChevronRight className="h-5 w-5 text-[oklch(0.62_0.015_260)]" />
                 </div>
               </button>
@@ -476,19 +543,26 @@ export default function Home() {
               <div className="mt-3 flex gap-2 overflow-x-auto rounded-[22px] bg-white px-2 py-2 shadow-[inset_0_0_0_1px_oklch(0.91_0.005_260)] snap-x snap-mandatory scrollbar-hide">
                 {teams.map((team) => {
                   const isActive = mobileDisplayTeam.id === team.id;
+                  const medal = getTopRankMedal(team);
                   return (
                     <button
                       key={team.id}
                       type="button"
                       onClick={() => handleMobileTeamJump(team)}
-                      className={`shrink-0 min-w-[64px] rounded-full px-4 py-2.5 text-sm font-black transition-all snap-center touch-manipulation ${
+                      className={`inline-flex shrink-0 min-w-[64px] items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-black transition-all snap-center touch-manipulation ${
                         isActive
                           ? 'text-white shadow-lg scale-105'
                           : 'bg-white text-[oklch(0.22_0.02_260)] active:scale-95'
                       }`}
                       style={isActive ? { background: `linear-gradient(135deg, ${team.color}, #D32F2F)`, boxShadow: `0 8px 18px ${team.color}30` } : {}}
                     >
-                      {team.name}
+                      {medal ? (
+                        <Medal
+                          className="h-3.5 w-3.5 shrink-0"
+                          style={{ color: isActive ? '#FFFFFF' : medal.medalColor, filter: isActive ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.22))' : `drop-shadow(0 1px 2px ${medal.medalColor}55)` }}
+                        />
+                      ) : null}
+                      <span>{team.name}</span>
                     </button>
                   );
                 })}

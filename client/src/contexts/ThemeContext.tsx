@@ -22,23 +22,27 @@ export function ThemeProvider({
   switchable = false,
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (switchable) {
-      const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
+    if (!switchable) return defaultTheme;
+
+    try {
+      const stored = window.localStorage.getItem("theme");
+      return stored === "dark" || stored === "light" ? stored : defaultTheme;
+    } catch {
+      return defaultTheme;
     }
-    return defaultTheme;
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    root.classList.toggle("dark", theme === "dark");
+    root.style.colorScheme = theme;
 
     if (switchable) {
-      localStorage.setItem("theme", theme);
+      try {
+        window.localStorage.setItem("theme", theme);
+      } catch {
+        // Ignore storage failures so the light/dark switch can still update the UI.
+      }
     }
   }, [theme, switchable]);
 

@@ -690,7 +690,7 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute left-2 top-2 sm:left-4 sm:top-4 z-[920]"
+            className="hidden lg:block absolute left-2 top-2 sm:left-4 sm:top-4 z-[920]"
           >
             <AnimatePresence mode="wait">
               {legendExpanded ? (
