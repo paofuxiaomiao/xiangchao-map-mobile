@@ -16,7 +16,7 @@ import TeamList from '@/components/TeamList';
 import TeamDetail from '@/components/TeamDetail';
 import StatsBar from '@/components/StatsBar';
 import { teams, type Team, HERO_BANNER, leagueStats } from '@/data/teams';
-import { Trophy, Map, ArrowLeft } from 'lucide-react';
+import { Trophy, Map, ArrowLeft, ChevronRight, MapPin, Shield, Star } from 'lucide-react';
 import { projectLogo } from '@/data/feature-data';
 import { routePath, assetPath } from '@/lib/sitePaths';
 import { useIsMobile } from '@/hooks/useMobile';
@@ -52,16 +52,23 @@ export default function Home() {
       setMobileHubOpen(false);
       return;
     }
-
-    const isSameTeam = selectedTeam?.id === team.id;
-    setSelectedTeam(isSameTeam ? null : team);
     if (isMobile) {
-      setMobilePanelOpen(!isSameTeam);
+      setSelectedTeam(team);
+      setMobilePanelOpen(false);
       setMobileLifePanelOpen(false);
       setMobileHubOpen(false);
+      return;
     }
+    const isSameTeam = selectedTeam?.id === team.id;
+    setSelectedTeam(isSameTeam ? null : team);
   }, [isMobile, selectedTeam]);
-
+  const handleMobileTeamJump = useCallback((team: Team) => {
+    setSelectedTeam(team);
+    setShow3D(false);
+    setMobilePanelOpen(false);
+    setMobileLifePanelOpen(false);
+    setMobileHubOpen(false);
+  }, []);
   const handleCloseDetail = useCallback(() => {
     setSelectedTeam(null);
     setShow3D(false);
@@ -274,7 +281,7 @@ export default function Home() {
         <div className="flex-1 relative">
           <HunanMap
             onTeamSelect={handleTeamSelect}
-            selectedTeam={selectedTeam}
+            selectedTeam={isMobile ? mobileDisplayTeam : selectedTeam}
             show3D={show3D}
             onToggle3D={handleToggle3D}
             onResetView={handleResetView}
@@ -406,45 +413,88 @@ export default function Home() {
             )}
           </AnimatePresence>
           
-          {/* Mobile: Bottom team selector with improved touch targets */}
-          <div className="lg:hidden absolute bottom-3 left-2 right-2 z-[600]">
-            {!selectedTeam && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-2 text-center"
+          {/* Mobile: Bottom team data card and city jump selector */}
+          <motion.div
+            initial={{ y: 28, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 220 }}
+            className="lg:hidden absolute bottom-0 left-0 right-0 z-[620] px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pointer-events-none"
+          >
+            <div className="mx-auto max-w-[440px] rounded-t-[26px] rounded-b-[22px] border border-white/80 bg-white/96 p-3 shadow-[0_-12px_34px_rgba(15,23,42,0.14)] backdrop-blur-2xl pointer-events-auto">
+              <div className="mx-auto mb-2 h-1 w-9 rounded-full bg-[oklch(0.78_0.01_260)]" />
+              <button
+                type="button"
+                onClick={handleOpenMobilePanel}
+                className="flex w-full items-center gap-3 rounded-[20px] px-1 pb-3 text-left active:scale-[0.99] transition-transform touch-manipulation"
+                aria-label="通过湘超球赛事入口查看当前球队赛事数据"
               >
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[oklch(0.90_0.005_260)] shadow-sm text-[11px] text-[oklch(0.45_0.02_260)]">
-                  <Map className="w-3 h-3 text-[#D32F2F]/60" />
-                  点击标记或下方按钮查看详情
-                </span>
-              </motion.div>
-            )}
-            <div className="flex gap-1.5 overflow-x-auto pb-2 px-0.5 snap-x snap-mandatory scrollbar-hide">
-              {teams.map((team) => {
-                const isActive = selectedTeam?.id === team.id;
-                return (
-                  <button
-                    key={team.id}
-                    onClick={() => handleTeamSelect(team)}
-                    className={`shrink-0 px-3 py-2 rounded-full text-xs font-bold transition-all border snap-start touch-manipulation ${
-                      isActive
-                        ? 'text-white shadow-lg border-transparent scale-105'
-                        : 'bg-white/90 text-[oklch(0.40_0.02_260)] backdrop-blur-sm border-[oklch(0.88_0.005_260)] shadow-sm active:scale-95'
-                    }`}
-                    style={
-                      isActive
-                        ? { backgroundColor: team.color, boxShadow: `0 4px 12px ${team.color}40` }
-                        : {}
-                    }
-                  >
-                    {team.name}
-                  </button>
-                );
-              })}
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_8px_20px_rgba(15,23,42,0.12)]">
+                  <div
+                    className="absolute inset-0 opacity-10"
+                    style={{ background: `radial-gradient(circle at 30% 20%, ${mobileDisplayTeam.color}, transparent 56%)` }}
+                  />
+                  <img src={projectLogo} alt="湘超联赛" className="relative z-10 h-full w-full object-contain p-2" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate text-xl font-black text-[oklch(0.18_0.02_260)]" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+                    {mobileDisplayTeam.fullName}
+                  </h2>
+                  <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-[oklch(0.52_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>{mobileDisplayTeam.city}</span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-600">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    {mobileDisplayTeam.rankLabel}
+                  </span>
+                  <ChevronRight className="h-5 w-5 text-[oklch(0.62_0.015_260)]" />
+                </div>
+              </button>
+              <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-[oklch(0.90_0.005_260)] bg-white/82">
+                <div className="flex flex-col items-center justify-center gap-1 border-r border-[oklch(0.90_0.005_260)] px-2 py-2.5">
+                  <Shield className="h-4 w-4 text-[oklch(0.50_0.02_260)]" />
+                  <div className="text-lg font-black text-[#D32F2F] leading-none">{mobileDisplayTeam.stats.points}<span className="ml-0.5 text-xs">分</span></div>
+                  <div className="text-[11px] text-[oklch(0.45_0.02_260)]">积分</div>
+                </div>
+                <div className="flex flex-col items-center justify-center gap-1 border-r border-[oklch(0.90_0.005_260)] px-2 py-2.5">
+                  <Trophy className="h-4 w-4 text-emerald-500" />
+                  <div className="text-sm font-black text-[#D32F2F] leading-none">
+                    {mobileDisplayTeam.stats.won}<span className="text-xs text-[oklch(0.45_0.02_260)]">胜</span>
+                    {mobileDisplayTeam.stats.drawn}<span className="text-xs text-[oklch(0.45_0.02_260)]">平</span>
+                    {mobileDisplayTeam.stats.lost}<span className="text-xs text-[oklch(0.45_0.02_260)]">负</span>
+                  </div>
+                  <div className="text-[11px] text-[oklch(0.45_0.02_260)]">战绩</div>
+                </div>
+                <div className="flex flex-col items-center justify-center gap-1 px-2 py-2.5">
+                  <span className="text-base leading-none">⚽</span>
+                  <div className="text-lg font-black text-[#D32F2F] leading-none">{mobileDisplayTeam.stats.goalsFor} / {mobileDisplayTeam.stats.goalsAgainst}</div>
+                  <div className="text-[11px] text-[oklch(0.45_0.02_260)]">进球/失球</div>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2 overflow-x-auto rounded-[22px] bg-white px-2 py-2 shadow-[inset_0_0_0_1px_oklch(0.91_0.005_260)] snap-x snap-mandatory scrollbar-hide">
+                {teams.map((team) => {
+                  const isActive = mobileDisplayTeam.id === team.id;
+                  return (
+                    <button
+                      key={team.id}
+                      type="button"
+                      onClick={() => handleMobileTeamJump(team)}
+                      className={`shrink-0 min-w-[64px] rounded-full px-4 py-2.5 text-sm font-black transition-all snap-center touch-manipulation ${
+                        isActive
+                          ? 'text-white shadow-lg scale-105'
+                          : 'bg-white text-[oklch(0.22_0.02_260)] active:scale-95'
+                      }`}
+                      style={isActive ? { background: `linear-gradient(135deg, ${team.color}, #D32F2F)`, boxShadow: `0 8px 18px ${team.color}30` } : {}}
+                    >
+                      {team.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-
+          </motion.div>
           {/* Desktop: Team Detail Panel */}
           <div className="hidden lg:block">
             <TeamDetail team={selectedTeam} onClose={handleCloseDetail} />
@@ -467,10 +517,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Mobile stats bar - simplified */}
-      <div className="lg:hidden shrink-0 border-t border-[oklch(0.90_0.005_260)] bg-white px-3 py-1.5 overflow-x-auto">
-        <StatsBar />
-      </div>
     </div>
   );
 }

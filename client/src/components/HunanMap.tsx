@@ -20,6 +20,7 @@ import { Building2, CarFront, ChevronLeft, ChevronRight, MapPinned, Soup, Store,
 import { teams, type Team, HUNAN_CENTER } from '@/data/teams';
 import { featureTeams, h5LayerOptions, h5Pois, type H5Poi, type PoiLayer } from '@/data/feature-data';
 import Satellite3DMap from './Satellite3DMap';
+import { useIsMobile } from '@/hooks/useMobile';
 
 // CDN URLs for GeoJSON data
 const CITIES_GEOJSON_URL = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/hunan_cities_final_02aa81a8.json';
@@ -250,6 +251,7 @@ function createPopupHtml(poi: H5Poi): string {
 }
 
 export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3D }: HunanMapProps) {
+  const isMobile = useIsMobile();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
@@ -542,7 +544,7 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
 
     if (activeServiceLayer === 'team') {
       const changshaMarker = markersRef.current.get('changsha');
-      if (changshaMarker && selectedTeam?.id === 'changsha') {
+      if (changshaMarker && selectedTeam?.id === 'changsha' && !isMobile) {
         setTimeout(() => {
           changshaMarker.openPopup();
         }, 120);
@@ -581,11 +583,11 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
       marker.addTo(map);
       serviceMarkersRef.current.set(poi.id, marker);
 
-      if (activeServicePoiId === poi.id) {
+      if (activeServicePoiId === poi.id && !isMobile) {
         setTimeout(() => marker.openPopup(), 120);
       }
     });
-  }, [activeServiceLayer, activeServicePoiId, currentLayerPois, geoLoaded, mapReady, onTeamSelect, selectedTeam, show3D]);
+  }, [activeServiceLayer, activeServicePoiId, currentLayerPois, geoLoaded, isMobile, mapReady, onTeamSelect, selectedTeam, show3D]);
 
   // Update markers and city highlights when selection changes
   useEffect(() => {
@@ -624,13 +626,13 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
         easeLinearity: 0.25,
       });
 
-      if (selectedTeam.id === 'changsha' && activeServiceLayer === 'team') {
+      if (selectedTeam.id === 'changsha' && activeServiceLayer === 'team' && !isMobile) {
         setTimeout(() => {
           markersRef.current.get('changsha')?.openPopup();
         }, 160);
       }
     }
-  }, [activeServiceLayer, selectedTeam]);
+  }, [activeServiceLayer, isMobile, selectedTeam]);
 
   // Reset view when exiting 3D and no team selected
   useEffect(() => {
