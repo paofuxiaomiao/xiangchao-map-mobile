@@ -17,29 +17,47 @@ import TeamDetail from '@/components/TeamDetail';
 import StatsBar from '@/components/StatsBar';
 import LogoBadge from '@/components/LogoBadge';
 import { teams, type Team, HERO_BANNER, leagueStats } from '@/data/teams';
-import { Trophy, Map, ArrowLeft } from 'lucide-react';
+import { Trophy, Map, ArrowLeft, PanelRightOpen } from 'lucide-react';
 import { projectLogo } from '@/data/feature-data';
 import { routePath, assetPath } from '@/lib/sitePaths';
 import { useIsMobile } from '@/hooks/useMobile';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 export default function Home() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [show3D, setShow3D] = useState(false);
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const handleTeamSelect = useCallback((team: Team | null) => {
     if (team === null) {
       setSelectedTeam(null);
       setShow3D(false);
-    } else {
-      setSelectedTeam((prev) => (prev?.id === team.id ? null : team));
+      setMobilePanelOpen(false);
+      return;
     }
-  }, []);
+
+    const isSameTeam = selectedTeam?.id === team.id;
+    setSelectedTeam(isSameTeam ? null : team);
+    if (isMobile) {
+      setMobilePanelOpen(!isSameTeam);
+    }
+  }, [isMobile, selectedTeam]);
 
   const handleCloseDetail = useCallback(() => {
     setSelectedTeam(null);
     setShow3D(false);
+    setMobilePanelOpen(false);
+  }, []);
+
+  const handleOpenMobilePanel = useCallback(() => {
+    if (!selectedTeam) {
+      setSelectedTeam(teams[0]);
+    }
+    setMobilePanelOpen(true);
+  }, [selectedTeam]);
+
+  const handleCloseMobilePanel = useCallback(() => {
+    setMobilePanelOpen(false);
   }, []);
 
   const handleToggle3D = useCallback(() => {
@@ -217,6 +235,60 @@ export default function Home() {
             onToggle3D={handleToggle3D}
             onResetView={handleResetView}
           />
+
+          {/* Mobile: floating entry to restore the original right-side team panel */}
+          <button
+            onClick={handleOpenMobilePanel}
+            className="lg:hidden absolute left-3 top-3 z-[1180] h-12 w-12 rounded-full border-2 border-white/90 bg-white/92 shadow-[0_12px_28px_rgba(15,23,42,0.18)] backdrop-blur-xl flex items-center justify-center active:scale-95 transition-transform touch-manipulation"
+            aria-label="打开球队详情侧栏"
+            title="打开球队详情"
+            style={{ boxShadow: `0 12px 28px ${(selectedTeam?.color ?? '#D32F2F')}28` }}
+          >
+            {selectedTeam ? (
+              <img
+                src={assetPath(`assets/badges/${selectedTeam.id}.jpg`)}
+                alt={selectedTeam.name}
+                className="h-9 w-9 rounded-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <PanelRightOpen className="h-5 w-5 text-[#D32F2F]" />
+            )}
+            <span
+              className="absolute -right-1 -bottom-1 h-5 w-5 rounded-full border border-white bg-[#D32F2F] text-[10px] font-black leading-5 text-white"
+              style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+            >
+              详
+            </span>
+          </button>
+
+          <AnimatePresence>
+            {isMobile && mobilePanelOpen && selectedTeam && (
+              <>
+                <motion.button
+                  key="mobile-detail-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={handleCloseMobilePanel}
+                  className="fixed inset-0 z-[1190] bg-black/30 backdrop-blur-[1px] lg:hidden"
+                  aria-label="关闭球队详情侧栏遮罩"
+                />
+                <motion.div
+                  key="mobile-detail-panel"
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                  className="fixed right-0 top-0 bottom-0 z-[1200] w-[min(92vw,420px)] max-w-[420px] lg:hidden"
+                >
+                  <div className="relative h-full w-full overflow-hidden rounded-l-[28px] shadow-[-20px_0_45px_rgba(15,23,42,0.22)]">
+                    <TeamDetail team={selectedTeam} onClose={handleCloseMobilePanel} />
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
           
           {/* Floating info - desktop only */}
           <AnimatePresence>
@@ -279,20 +351,6 @@ export default function Home() {
             <TeamDetail team={selectedTeam} onClose={handleCloseDetail} />
           </div>
 
-          {/* Mobile: Team Detail as Bottom Drawer */}
-          {isMobile && (
-            <Drawer open={!!selectedTeam} onOpenChange={(open) => { if (!open) handleCloseDetail(); }}>
-              <DrawerContent className="max-h-[78vh]">
-                <DrawerHeader className="sr-only">
-                  <DrawerTitle>{selectedTeam?.name ?? ''} 详情</DrawerTitle>
-                </DrawerHeader>
-                {selectedTeam && (
-                  <MobileTeamDetail team={selectedTeam} onClose={handleCloseDetail} />
-                )}
-              </DrawerContent>
-            </Drawer>
-          )}
-
           {/* Map control buttons */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-[1100] flex items-center gap-2">
             <button
@@ -313,83 +371,6 @@ export default function Home() {
       {/* Mobile stats bar - simplified */}
       <div className="lg:hidden shrink-0 border-t border-[oklch(0.90_0.005_260)] bg-white px-3 py-1.5 overflow-x-auto">
         <StatsBar />
-      </div>
-    </div>
-  );
-}
-
-/** Mobile Team Detail - Compact card for bottom drawer */
-function MobileTeamDetail({ team, onClose }: { team: Team; onClose: () => void }) {
-  return (
-    <div className="px-4 pb-6 pt-2 overflow-y-auto max-h-[68vh]">
-      {/* Team header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md overflow-hidden"
-          style={{ background: `linear-gradient(135deg, ${team.color}, ${team.color}DD)` }}
-        >
-          <img
-            src={assetPath(`assets/badges/${team.id}.jpg`)}
-            alt={team.name}
-            className="w-9 h-9 rounded-lg object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-black truncate" style={{ fontFamily: "'Noto Serif SC', serif" }}>
-            {team.name}
-          </h3>
-          <p className="text-xs text-[oklch(0.50_0.02_260)]">{team.city} · {team.rankLabel}</p>
-        </div>
-        <div
-          className="px-3 py-1 rounded-full text-xs font-bold text-white shrink-0"
-          style={{ backgroundColor: team.color }}
-        >
-          #{team.rank}
-        </div>
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
-        <div className="bg-[oklch(0.97_0.005_260)] rounded-xl p-2.5 text-center">
-          <div className="text-base font-black" style={{ color: team.color }}>{team.stats.points}</div>
-          <div className="text-[10px] text-[oklch(0.50_0.02_260)]">积分</div>
-        </div>
-        <div className="bg-[oklch(0.97_0.005_260)] rounded-xl p-2.5 text-center">
-          <div className="text-base font-black text-green-600">{team.stats.won}</div>
-          <div className="text-[10px] text-[oklch(0.50_0.02_260)]">胜</div>
-        </div>
-        <div className="bg-[oklch(0.97_0.005_260)] rounded-xl p-2.5 text-center">
-          <div className="text-base font-black text-amber-600">{team.stats.drawn}</div>
-          <div className="text-[10px] text-[oklch(0.50_0.02_260)]">平</div>
-        </div>
-        <div className="bg-[oklch(0.97_0.005_260)] rounded-xl p-2.5 text-center">
-          <div className="text-base font-black text-red-600">{team.stats.lost}</div>
-          <div className="text-[10px] text-[oklch(0.50_0.02_260)]">负</div>
-        </div>
-      </div>
-
-      {/* Description */}
-      <div className="bg-[oklch(0.97_0.005_260)] rounded-xl p-3.5 mb-4">
-        <p className="text-sm leading-6 text-[oklch(0.40_0.02_260)]">
-          {team.description}
-        </p>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-2">
-        <Link href={routePath('/interactive')} className="flex-1">
-          <div className="w-full text-center py-2.5 rounded-xl text-sm font-bold text-white touch-manipulation"
-            style={{ background: `linear-gradient(135deg, ${team.color}, ${team.color}CC)` }}>
-            查看完整数据
-          </div>
-        </Link>
-        <button
-          onClick={onClose}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium bg-[oklch(0.95_0.005_260)] text-[oklch(0.40_0.02_260)] border border-[oklch(0.90_0.005_260)] touch-manipulation"
-        >
-          关闭
-        </button>
       </div>
     </div>
   );

@@ -169,22 +169,29 @@ function CheeringPanel() {
 
   return (
     <div>
-      <p className={`text-sm font-body mb-6 ${textSecondary}`}>选择你支持的球队，为他们线上打气！点击口号即可增加热度。</p>
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {TEAMS.slice(0, 8).map(team => (
-          <button
-            key={team.id}
-            onClick={() => setSelectedTeam(team)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-body font-medium transition-all whitespace-nowrap
-              ${selectedTeam.id === team.id
-                ? isDark ? 'bg-[oklch(0.58_0.22_25/15%)] border border-[oklch(0.58_0.22_25/30%)]' + ` ${textPrimary}` : 'bg-red-50 border border-[#DC2626]/20 text-gray-900'
-                : isDark ? 'bg-[oklch(0.12_0.01_280/60%)] border border-[oklch(1_0_0/8%)] text-[oklch(0.5_0.005_280)]' : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-300'
-              }`}
-          >
-            <img src={team.logo} alt={team.name} className="w-5 h-5 rounded-full object-cover" />
-            {team.city}
-          </button>
-        ))}
+      <p className={`text-sm font-body mb-4 ${textSecondary}`}>选择你支持的球队，为他们线上打气！点击口号即可增加热度。</p>
+      <div className="relative mb-6">
+        <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-background to-transparent" />
+        <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-background to-transparent" />
+        <div className="flex gap-3 overflow-x-auto pb-3 px-1 snap-x snap-mandatory scrollbar-hide" aria-label="滑动选择打气球队">
+          {TEAMS.map(team => (
+            <button
+              key={team.id}
+              onClick={() => setSelectedTeam(team)}
+              className={`shrink-0 snap-start flex w-[74px] flex-col items-center gap-2 rounded-2xl px-2.5 py-3 text-[11px] font-body font-bold transition-all touch-manipulation
+                ${selectedTeam.id === team.id
+                  ? isDark ? 'bg-[oklch(0.58_0.22_25/18%)] border border-[oklch(0.58_0.22_25/35%)] shadow-lg shadow-red-500/10' + ` ${textPrimary}` : 'bg-red-50 border border-[#DC2626]/25 text-gray-900 shadow-lg shadow-red-500/10'
+                  : isDark ? 'bg-[oklch(0.12_0.01_280/60%)] border border-[oklch(1_0_0/8%)] text-[oklch(0.55_0.005_280)]' : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+            >
+              <span className={`relative flex h-12 w-12 items-center justify-center rounded-full border-2 bg-white shadow-sm transition-all
+                ${selectedTeam.id === team.id ? 'border-[#DC2626] scale-105' : 'border-white'}`}>
+                <img src={team.logo} alt={team.name} className="h-10 w-10 rounded-full object-cover" />
+              </span>
+              <span className="max-w-full truncate">{team.city}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="relative">
@@ -214,7 +221,7 @@ function CheeringPanel() {
           <motion.button whileTap={{ scale: 0.95 }} onClick={() => handleCheer(`team-${selectedTeam.id}`, selectedTeam.slogan)}
             className={`glass-panel rounded-xl p-4 text-center transition-all duration-300 border border-dashed hover:shadow-md ${isDark ? 'border-[oklch(1_0_0/15%)] hover:border-[#DC2626]/40' : 'border-gray-300 hover:border-[#DC2626]/40'}`}>
             <div className="flex items-center justify-center gap-2 mb-2">
-              <img src={selectedTeam.logo} alt={selectedTeam.name} className="w-6 h-6 rounded-full object-cover" />
+              <img src={selectedTeam.logo} alt={selectedTeam.name} className="w-9 h-9 rounded-full object-cover shadow-sm" />
               <span className={`font-body text-sm font-semibold ${textPrimary}`}>{selectedTeam.city}专属</span>
             </div>
             <div className={`font-body text-xs italic ${textSecondary}`}>"{selectedTeam.slogan}"</div>

@@ -1,7 +1,9 @@
 /* Dual-theme Navigation Bar with prominent Light/Dark toggle */
 import { useState } from 'react';
-import { Menu, X, Zap, Sun, Moon, Lightbulb, LightbulbOff } from 'lucide-react';
+import { Menu, X, Zap, Lightbulb, LightbulbOff, Map } from 'lucide-react';
+import { Link } from 'wouter';
 import { useTheme } from '@/contexts/ThemeContext';
+import { routePath } from '@/lib/sitePaths';
 
 interface NavbarProps {
   activeSection: string;
@@ -70,8 +72,18 @@ export default function Navbar({ activeSection, onNavigate }: NavbarProps) {
           ))}
         </div>
 
-        {/* Right side: PROMINENT theme toggle + live indicator */}
-        <div className="hidden lg:flex items-center gap-4">
+        {/* Right side: map shortcut + PROMINENT theme toggle + live indicator */}
+        <div className="hidden lg:flex items-center gap-3">
+          <Link href={routePath('/map')}>
+            <span className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold tracking-wide transition-all duration-300 shadow-sm cursor-pointer
+              ${isDark
+                ? 'border-[oklch(1_0_0/12%)] bg-[oklch(1_0_0/5%)] text-white hover:border-[#DC2626]/50 hover:text-[#DC2626]'
+                : 'border-gray-200 bg-white/80 text-gray-700 hover:border-[#DC2626]/30 hover:text-[#DC2626]'
+              }`}>
+              <Map className="h-4 w-4" />
+              数字看板
+            </span>
+          </Link>
           {/* ===== Theme toggle button - LARGE & PROMINENT ===== */}
           {toggleTheme && (
             <button
@@ -107,8 +119,17 @@ export default function Navbar({ activeSection, onNavigate }: NavbarProps) {
           </div>
         </div>
 
-        {/* Mobile: PROMINENT theme toggle + menu */}
+        {/* Mobile: map shortcut + PROMINENT theme toggle + menu */}
         <div className="lg:hidden flex items-center gap-2">
+          <Link href={routePath('/map')}>
+            <span className={`flex h-9 w-9 items-center justify-center rounded-full border shadow-sm transition-colors
+              ${isDark
+                ? 'border-[oklch(1_0_0/10%)] bg-[oklch(1_0_0/5%)] text-white'
+                : 'border-gray-200 bg-white text-gray-700'
+              }`} aria-label="返回数字看板">
+              <Map className="h-4 w-4" />
+            </span>
+          </Link>
           {toggleTheme && (
             <button
               onClick={toggleTheme}
@@ -146,6 +167,13 @@ export default function Navbar({ activeSection, onNavigate }: NavbarProps) {
           ${isDark ? 'bg-[oklch(0.08_0.01_280/95%)] border-[oklch(1_0_0/8%)]' : 'bg-white/95 border-gray-200/60'}`}
         >
           <div className="container py-4 space-y-1">
+            <Link href={routePath('/map')}>
+              <span className={`mb-2 flex w-full items-center gap-2 rounded-lg px-4 py-3 font-body text-sm font-bold tracking-wide transition-all
+                ${isDark ? 'bg-[oklch(1_0_0/5%)] text-white' : 'bg-red-50 text-[#DC2626]'}`}>
+                <Map className="h-4 w-4" />
+                返回数字看板
+              </span>
+            </Link>
             {NAV_ITEMS.map(item => (
               <button
                 key={item.id}
