@@ -11,10 +11,24 @@ import H5Experience from "./pages/H5Experience";
 import InteractivePage from "./pages/InteractivePage";
 import { routePath } from "./lib/sitePaths";
 
+const welcomeRoutePaths = Array.from(
+  new Set(
+    [
+      routePath("/"),
+      routePath("/").replace(/\/$/, ""),
+      routePath("/index.html"),
+      "/",
+      "/index.html",
+    ].filter((path) => path.length > 0),
+  ),
+);
+
 function Router() {
   return (
     <Switch>
-      <Route path={routePath("/")} component={Landing} />
+      {welcomeRoutePaths.map((path) => (
+        <Route key={path} path={path} component={Landing} />
+      ))}
       <Route path={routePath("/map")} component={Home} />
       <Route path={routePath("/modules")} component={FeatureModules} />
       <Route path={routePath("/h5")} component={H5Experience} />
