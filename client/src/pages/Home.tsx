@@ -16,7 +16,7 @@ import TeamList from '@/components/TeamList';
 import TeamDetail from '@/components/TeamDetail';
 import StatsBar from '@/components/StatsBar';
 import { teams, type Team, HERO_BANNER, leagueStats } from '@/data/teams';
-import { Trophy, Map, ArrowLeft, ChevronRight, MapPin, Shield, Medal } from 'lucide-react';
+import { Trophy, Map, ArrowLeft, ChevronRight, MapPin, Shield, Medal, ChevronDown, ChevronUp, Flame, Target, Timer, CalendarDays } from 'lucide-react';
 import { projectLogo } from '@/data/feature-data';
 import { routePath, assetPath } from '@/lib/sitePaths';
 import { useIsMobile } from '@/hooks/useMobile';
@@ -77,6 +77,8 @@ export default function Home() {
   const [mobileHubOpen, setMobileHubOpen] = useState(false);
   const [mobileLifePanelOpen, setMobileLifePanelOpen] = useState(false);
   const [activeLifeLayer, setActiveLifeLayer] = useState<LifeLayerKey>('team');
+  const [mapResetSignal, setMapResetSignal] = useState(0);
+  const [mobileCardCollapsed, setMobileCardCollapsed] = useState(false);
   const isMobile = useIsMobile();
   const defaultMobileTeam = teams.find((team) => team.id === 'changsha') ?? teams[0];
   const mobileDisplayTeam = selectedTeam ?? defaultMobileTeam;
@@ -152,11 +154,14 @@ export default function Home() {
 
   const handleResetView = useCallback(() => {
     setShow3D(false);
-    setSelectedTeam(null);
+    if (!isMobile) {
+      setSelectedTeam(null);
+    }
     setMobilePanelOpen(false);
     setMobileLifePanelOpen(false);
     setMobileHubOpen(false);
-  }, []);
+    setMapResetSignal((value) => value + 1);
+  }, [isMobile]);
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-[oklch(0.96_0.005_220)] flex flex-col">
@@ -323,6 +328,7 @@ export default function Home() {
             show3D={show3D}
             onToggle3D={handleToggle3D}
             onResetView={handleResetView}
+            resetViewSignal={mapResetSignal}
           />
 
           {/* Mobile: Xiangchao ball hub with match/life quick actions */}
@@ -458,116 +464,142 @@ export default function Home() {
             transition={{ type: 'spring', damping: 24, stiffness: 220 }}
             className="lg:hidden absolute bottom-0 left-0 right-0 z-[620] px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pointer-events-none"
           >
-            <div className="mx-auto max-w-[440px] rounded-t-[26px] rounded-b-[22px] border border-white/80 bg-white/96 p-3 shadow-[0_-12px_34px_rgba(15,23,42,0.14)] backdrop-blur-2xl pointer-events-auto">
-              <div className="mx-auto mb-2 h-1 w-9 rounded-full bg-[oklch(0.78_0.01_260)]" />
-              <button
-                type="button"
-                onClick={handleOpenMobilePanel}
-                className="flex w-full items-center gap-3 rounded-[20px] px-1 pb-3 text-left active:scale-[0.99] transition-transform touch-manipulation"
-                aria-label="通过湘超球赛事入口查看当前球队赛事数据"
-              >
-                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_8px_20px_rgba(15,23,42,0.12)]">
-                  <div
-                    className="absolute inset-0 opacity-10"
-                    style={{ background: `radial-gradient(circle at 30% 20%, ${mobileDisplayTeam.color}, transparent 56%)` }}
-                  />
-                  <img
-                    src={assetPath(`assets/badges/${mobileDisplayTeam.id}.jpg`)}
-                    alt={`${mobileDisplayTeam.name}队徽`}
-                    className="relative z-10 h-full w-full object-cover"
-                    onError={(event) => {
-                      const target = event.currentTarget;
-                      target.style.display = 'none';
-                      const fallback = target.nextElementSibling;
-                      fallback?.classList.remove('hidden');
-                      fallback?.classList.add('flex');
-                    }}
-                  />
-                  <span
-                    className="team-crest-fallback hidden relative z-10 h-full w-full items-center justify-center text-xl font-black text-white"
-                    style={{ background: `linear-gradient(135deg, ${mobileDisplayTeam.color}, ${mobileDisplayTeam.color}CC)`, fontFamily: "'Noto Serif SC', serif" }}
+            <AnimatePresence mode="wait" initial={false}>
+              {mobileCardCollapsed ? (
+                <MobileCollapsedDashboardBar
+                  key="mobile-collapsed-dashboard"
+                  onExpand={() => setMobileCardCollapsed(false)}
+                />
+              ) : (
+                <motion.div
+                  key="mobile-expanded-team-card"
+                  initial={{ y: 18, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 18, opacity: 0 }}
+                  transition={{ type: 'spring', damping: 26, stiffness: 260 }}
+                  className="mx-auto max-w-[440px] rounded-t-[26px] rounded-b-[22px] border border-white/80 bg-white/96 p-3 shadow-[0_-12px_34px_rgba(15,23,42,0.14)] backdrop-blur-2xl pointer-events-auto"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setMobileCardCollapsed(true)}
+                    className="mx-auto mb-2 flex h-6 min-w-20 items-center justify-center gap-1 rounded-full px-3 text-[10px] font-black text-[oklch(0.45_0.02_260)] active:scale-95 transition-transform"
+                    aria-label="收起底部球队数据卡，显示数字看板快捷工具条"
+                    title="收起球队卡片"
+                    style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
                   >
-                    {mobileDisplayTeam.name.slice(0, 1)}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="truncate text-xl font-black text-[oklch(0.18_0.02_260)]" style={{ fontFamily: "'Noto Serif SC', serif" }}>
-                    {mobileDisplayTeam.fullName}
-                  </h2>
-                  <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-[oklch(0.52_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span>{mobileDisplayTeam.city}</span>
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {(() => {
-                    const medal = getTopRankMedal(mobileDisplayTeam);
-                    return medal ? (
+                    <span className="h-1 w-9 rounded-full bg-[oklch(0.78_0.01_260)]" />
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenMobilePanel}
+                    className="flex w-full items-center gap-3 rounded-[20px] px-1 pb-3 text-left active:scale-[0.99] transition-transform touch-manipulation"
+                    aria-label="通过湘超球赛事入口查看当前球队赛事数据"
+                  >
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_8px_20px_rgba(15,23,42,0.12)]">
+                      <div
+                        className="absolute inset-0 opacity-10"
+                        style={{ background: `radial-gradient(circle at 30% 20%, ${mobileDisplayTeam.color}, transparent 56%)` }}
+                      />
+                      <img
+                        src={assetPath(`assets/badges/${mobileDisplayTeam.id}.jpg`)}
+                        alt={`${mobileDisplayTeam.name}队徽`}
+                        className="relative z-10 h-full w-full object-cover"
+                        onError={(event) => {
+                          const target = event.currentTarget;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling;
+                          fallback?.classList.remove('hidden');
+                          fallback?.classList.add('flex');
+                        }}
+                      />
                       <span
-                        className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${medal.bgClass} ${medal.borderClass} ${medal.textClass}`}
-                        style={{ boxShadow: medal.shadow }}
+                        className="team-crest-fallback hidden relative z-10 h-full w-full items-center justify-center text-xl font-black text-white"
+                        style={{ background: `linear-gradient(135deg, ${mobileDisplayTeam.color}, ${mobileDisplayTeam.color}CC)`, fontFamily: "'Noto Serif SC', serif" }}
                       >
-                        <Medal className="h-3.5 w-3.5" style={{ color: medal.medalColor }} />
-                        {medal.label}
+                        {mobileDisplayTeam.name.slice(0, 1)}
                       </span>
-                    ) : (
-                      <span className="inline-flex items-center rounded-lg border border-[oklch(0.90_0.005_260)] bg-white px-2.5 py-1 text-xs font-black text-[oklch(0.42_0.02_260)]">
-                        {mobileDisplayTeam.rankLabel}
-                      </span>
-                    );
-                  })()}
-                  <ChevronRight className="h-5 w-5 text-[oklch(0.62_0.015_260)]" />
-                </div>
-              </button>
-              <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-[oklch(0.90_0.005_260)] bg-white/82">
-                <div className="flex flex-col items-center justify-center gap-1 border-r border-[oklch(0.90_0.005_260)] px-2 py-2.5">
-                  <Shield className="h-4 w-4 text-[oklch(0.50_0.02_260)]" />
-                  <div className="text-lg font-black text-[#D32F2F] leading-none">{mobileDisplayTeam.stats.points}<span className="ml-0.5 text-xs">分</span></div>
-                  <div className="text-[11px] text-[oklch(0.45_0.02_260)]">积分</div>
-                </div>
-                <div className="flex flex-col items-center justify-center gap-1 border-r border-[oklch(0.90_0.005_260)] px-2 py-2.5">
-                  <Trophy className="h-4 w-4 text-emerald-500" />
-                  <div className="text-sm font-black text-[#D32F2F] leading-none">
-                    {mobileDisplayTeam.stats.won}<span className="text-xs text-[oklch(0.45_0.02_260)]">胜</span>
-                    {mobileDisplayTeam.stats.drawn}<span className="text-xs text-[oklch(0.45_0.02_260)]">平</span>
-                    {mobileDisplayTeam.stats.lost}<span className="text-xs text-[oklch(0.45_0.02_260)]">负</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate text-xl font-black text-[oklch(0.18_0.02_260)]" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+                        {mobileDisplayTeam.fullName}
+                      </h2>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-[oklch(0.52_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+                        <MapPin className="h-3.5 w-3.5" />
+                        <span>{mobileDisplayTeam.city}</span>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {(() => {
+                        const medal = getTopRankMedal(mobileDisplayTeam);
+                        return medal ? (
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-black ${medal.bgClass} ${medal.borderClass} ${medal.textClass}`}
+                            style={{ boxShadow: medal.shadow }}
+                          >
+                            <Medal className="h-3.5 w-3.5" style={{ color: medal.medalColor }} />
+                            {medal.label}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-lg border border-[oklch(0.90_0.005_260)] bg-white px-2.5 py-1 text-xs font-black text-[oklch(0.42_0.02_260)]">
+                            {mobileDisplayTeam.rankLabel}
+                          </span>
+                        );
+                      })()}
+                      <ChevronRight className="h-5 w-5 text-[oklch(0.62_0.015_260)]" />
+                    </div>
+                  </button>
+                  <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-[oklch(0.90_0.005_260)] bg-white/82">
+                    <div className="flex flex-col items-center justify-center gap-1 border-r border-[oklch(0.90_0.005_260)] px-2 py-2.5">
+                      <Shield className="h-4 w-4 text-[oklch(0.50_0.02_260)]" />
+                      <div className="text-lg font-black text-[#D32F2F] leading-none">{mobileDisplayTeam.stats.points}<span className="ml-0.5 text-xs">分</span></div>
+                      <div className="text-[11px] text-[oklch(0.45_0.02_260)]">积分</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center gap-1 border-r border-[oklch(0.90_0.005_260)] px-2 py-2.5">
+                      <Trophy className="h-4 w-4 text-emerald-500" />
+                      <div className="text-sm font-black text-[#D32F2F] leading-none">
+                        {mobileDisplayTeam.stats.won}<span className="text-xs text-[oklch(0.45_0.02_260)]">胜</span>
+                        {mobileDisplayTeam.stats.drawn}<span className="text-xs text-[oklch(0.45_0.02_260)]">平</span>
+                        {mobileDisplayTeam.stats.lost}<span className="text-xs text-[oklch(0.45_0.02_260)]">负</span>
+                      </div>
+                      <div className="text-[11px] text-[oklch(0.45_0.02_260)]">战绩</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center gap-1 px-2 py-2.5">
+                      <span className="text-base leading-none">⚽</span>
+                      <div className="text-lg font-black text-[#D32F2F] leading-none">{mobileDisplayTeam.stats.goalsFor} / {mobileDisplayTeam.stats.goalsAgainst}</div>
+                      <div className="text-[11px] text-[oklch(0.45_0.02_260)]">进球/失球</div>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-[oklch(0.45_0.02_260)]">战绩</div>
-                </div>
-                <div className="flex flex-col items-center justify-center gap-1 px-2 py-2.5">
-                  <span className="text-base leading-none">⚽</span>
-                  <div className="text-lg font-black text-[#D32F2F] leading-none">{mobileDisplayTeam.stats.goalsFor} / {mobileDisplayTeam.stats.goalsAgainst}</div>
-                  <div className="text-[11px] text-[oklch(0.45_0.02_260)]">进球/失球</div>
-                </div>
-              </div>
-              <div className="mt-3 flex gap-2 overflow-x-auto rounded-[22px] bg-white px-2 py-2 shadow-[inset_0_0_0_1px_oklch(0.91_0.005_260)] snap-x snap-mandatory scrollbar-hide">
-                {teams.map((team) => {
-                  const isActive = mobileDisplayTeam.id === team.id;
-                  const medal = getTopRankMedal(team);
-                  return (
-                    <button
-                      key={team.id}
-                      type="button"
-                      onClick={() => handleMobileTeamJump(team)}
-                      className={`inline-flex shrink-0 min-w-[64px] items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-black transition-all snap-center touch-manipulation ${
-                        isActive
-                          ? 'text-white shadow-lg scale-105'
-                          : 'bg-white text-[oklch(0.22_0.02_260)] active:scale-95'
-                      }`}
-                      style={isActive ? { background: `linear-gradient(135deg, ${team.color}, #D32F2F)`, boxShadow: `0 8px 18px ${team.color}30` } : {}}
-                    >
-                      {medal ? (
-                        <Medal
-                          className="h-3.5 w-3.5 shrink-0"
-                          style={{ color: isActive ? '#FFFFFF' : medal.medalColor, filter: isActive ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.22))' : `drop-shadow(0 1px 2px ${medal.medalColor}55)` }}
-                        />
-                      ) : null}
-                      <span>{team.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                  <div className="mt-3 flex gap-2 overflow-x-auto rounded-[22px] bg-white px-2 py-2 shadow-[inset_0_0_0_1px_oklch(0.91_0.005_260)] snap-x snap-mandatory scrollbar-hide">
+                    {teams.map((team) => {
+                      const isActive = mobileDisplayTeam.id === team.id;
+                      const medal = getTopRankMedal(team);
+                      return (
+                        <button
+                          key={team.id}
+                          type="button"
+                          onClick={() => handleMobileTeamJump(team)}
+                          className={`inline-flex shrink-0 min-w-[64px] items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-black transition-all snap-center touch-manipulation ${
+                            isActive
+                              ? 'text-white shadow-lg scale-105'
+                              : 'bg-white text-[oklch(0.22_0.02_260)] active:scale-95'
+                          }`}
+                          style={isActive ? { background: `linear-gradient(135deg, ${team.color}, #D32F2F)`, boxShadow: `0 8px 18px ${team.color}30` } : {}}
+                        >
+                          {medal ? (
+                            <Medal
+                              className="h-3.5 w-3.5 shrink-0"
+                              style={{ color: isActive ? '#FFFFFF' : medal.medalColor, filter: isActive ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.22))' : `drop-shadow(0 1px 2px ${medal.medalColor}55)` }}
+                            />
+                          ) : null}
+                          <span>{team.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
           {/* Desktop: Team Detail Panel */}
           <div className="hidden lg:block">
@@ -592,6 +624,88 @@ export default function Home() {
       </main>
 
     </div>
+  );
+}
+
+function MobileCollapsedDashboardBar({ onExpand }: { onExpand: () => void }) {
+  const today = (() => {
+    const date = new Date();
+    return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+  })();
+
+  const statItems = [
+    { label: '总比赛', value: String(leagueStats.totalMatches), suffix: '场', icon: Flame },
+    { label: '总进球', value: String(leagueStats.totalGoals), suffix: '球', icon: Target },
+    { label: '参赛城市', value: String(leagueStats.cities), suffix: '城', icon: MapPin },
+    { label: '赛程', value: leagueStats.duration, suffix: '', icon: Timer },
+    { label: '今日日期', value: today, suffix: '', icon: CalendarDays },
+  ];
+
+  return (
+    <motion.div
+      initial={{ y: 18, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 18, opacity: 0 }}
+      transition={{ type: 'spring', damping: 26, stiffness: 260 }}
+      className="mx-auto max-w-[440px] overflow-hidden rounded-[24px] border border-white/75 bg-white/95 shadow-[0_-10px_30px_rgba(15,23,42,0.16)] backdrop-blur-2xl pointer-events-auto"
+      aria-label="收起态数字看板快捷工具条"
+    >
+      <div className="relative overflow-hidden rounded-[23px] bg-gradient-to-r from-[#B71C1C] via-[#D32F2F] to-[#EF5350] px-2.5 py-2.5">
+        <div
+          className="absolute inset-0 opacity-[0.10]"
+          style={{
+            backgroundImage: `url(${HERO_BANNER})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            mixBlendMode: 'screen',
+          }}
+        />
+        <div className="relative flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          <button
+            type="button"
+            onClick={onExpand}
+            className="flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/22 bg-white/16 px-3 text-xs font-black text-white shadow-sm active:scale-95 transition-transform touch-manipulation"
+            aria-label="展开底部球队数据卡"
+            title="展开球队卡片"
+            style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+          >
+            <ChevronUp className="h-4 w-4" />
+            展开
+          </button>
+          <Link href={routePath('/interactive')}>
+            <div className="flex h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-white/22 bg-white/14 px-3 text-xs font-black text-white/95 active:scale-95 transition-transform">
+              互动中心
+            </div>
+          </Link>
+          <Link href={routePath('/h5')}>
+            <div className="flex h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-white/22 bg-black/18 px-3 text-xs font-black text-white/95 active:scale-95 transition-transform">
+              H5
+            </div>
+          </Link>
+          {statItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.label}
+                className="flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-[15px] border border-white/16 bg-white/12 px-3 text-white backdrop-blur-md"
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/12 text-white/75">
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <span className="flex flex-col leading-none">
+                  <span className="text-sm font-black" style={{ fontFamily: "'DM Mono', monospace" }}>
+                    {item.value}<span className="ml-0.5 text-[10px] font-bold text-white/65">{item.suffix}</span>
+                  </span>
+                  <span className="mt-1 whitespace-nowrap text-[9px] font-medium tracking-[0.12em] text-white/55">
+                    {item.label}
+                  </span>
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
   );
 }
 

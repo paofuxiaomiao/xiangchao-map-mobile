@@ -32,6 +32,7 @@ interface HunanMapProps {
   show3D: boolean;
   onToggle3D: () => void;
   onResetView: () => void;
+  resetViewSignal?: number;
 }
 
 // City name to team mapping
@@ -47,6 +48,7 @@ const DEFAULT_CITY_BORDER = '#C5B9AD';
 const CHANGSHA_TEAM = teams.find((team) => team.id === 'changsha') as Team;
 const CHANGSHA_FEATURE = featureTeams.find((team) => team.id === 'changsha');
 const CHANGSHA_DEMO_CENTER: [number, number] = [28.226, 112.978];
+const HUNAN_OVERVIEW_BOUNDS = L.latLngBounds([24.62, 108.47], [30.08, 114.25]);
 const CHANGSHA_DEMO_POIS = h5Pois.filter((poi) => poi.city === '长沙');
 
 const LAYER_META: Record<PoiLayer, { label: string; hint: string }> = {
@@ -250,11 +252,12 @@ function createPopupHtml(poi: H5Poi): string {
   `;
 }
 
-export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3D }: HunanMapProps) {
+export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3D, resetViewSignal = 0 }: HunanMapProps) {
   const isMobile = useIsMobile();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const overviewLockedTeamRef = useRef<string | null>(null);
   const serviceMarkersRef = useRef<Map<string, L.Marker>>(new Map());
   const cityLayersRef = useRef<Map<string, L.GeoJSON>>(new Map());
   const [mapReady, setMapReady] = useState(false);
@@ -281,6 +284,7 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
   }, []);
 
   const handleLayerSwitch = useCallback((layer: PoiLayer) => {
+    overviewLockedTeamRef.current = null;
     const firstPoi = CHANGSHA_DEMO_POIS.find((poi) => poi.layer === layer);
     setActiveServiceLayer(layer);
     setActiveServicePoiId(firstPoi?.id ?? 'team-changsha');
@@ -319,6 +323,7 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
 
     const collapseLegend = () => {
       setLegendExpanded(false);
+      overviewLockedTeamRef.current = null;
     };
 
     map.on('dragstart', collapseLegend);
@@ -415,6 +420,7 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
                     });
                   },
                   click: () => {
+                    overviewLockedTeamRef.current = null;
                     onTeamSelect(team);
                   },
                 });
@@ -506,6 +512,7 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
         }
 
         marker.on('click', () => {
+          overviewLockedTeamRef.current = null;
           onTeamSelect(team);
           if (team.id === 'changsha') {
             setActiveServiceLayer('team');
@@ -616,6 +623,10 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
     });
 
     if (selectedTeam) {
+      if (overviewLockedTeamRef.current === selectedTeam.id) {
+        return;
+      }
+
       if (selectedTeam.id === 'changsha' && activeServiceLayer !== 'team') {
         return;
       }
@@ -637,9 +648,34 @@ export default function HunanMap({ onTeamSelect, selectedTeam, show3D, onToggle3
   // Reset view when exiting 3D and no team selected
   useEffect(() => {
     if (!show3D && !selectedTeam && activeServiceLayer === 'team' && mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo(HUNAN_CENTER, 7.8, { duration: 1 });
+      mapInstanceRef.current.fitBounds(HUNAN_OVERVIEW_BOUNDS, {
+        paddingTopLeft: isMobile ? [18, 104] : [42, 42],
+        paddingBottomRight: isMobile ? [18, 190] : [42, 42],
+        animate: true,
+        duration: 1,
+        maxZoom: isMobile ? 7.15 : 7.8,
+      });
     }
-  }, [activeServiceLayer, show3D, selectedTeam]);
+  }, [activeServiceLayer, isMobile, show3D, selectedTeam]);
+
+  // Explicit overview command from the floating "总览" button.
+  useEffect(() => {
+    if (!resetViewSignal || !mapReady || !mapInstanceRef.current || show3D) return;
+
+    overviewLockedTeamRef.current = selectedTeam?.id ?? null;
+    setActiveServiceLayer('team');
+    setActiveServicePoiId('team-changsha');
+    setLegendExpanded(false);
+
+    mapInstanceRef.current.closePopup();
+    mapInstanceRef.current.fitBounds(HUNAN_OVERVIEW_BOUNDS, {
+      paddingTopLeft: isMobile ? [18, 104] : [42, 42],
+      paddingBottomRight: isMobile ? [18, 190] : [42, 42],
+      animate: true,
+      duration: 0.9,
+      maxZoom: isMobile ? 7.15 : 7.8,
+    });
+  }, [geoLoaded, isMobile, mapReady, resetViewSignal, show3D]);
 
   return (
     <div className="relative h-full w-full">
