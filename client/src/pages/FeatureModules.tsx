@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -84,10 +84,15 @@ function loadJson<T>(key: string, fallback: T): T {
 function resolveInitialView(): ModuleView {
   if (typeof window === 'undefined') return 'dashboard';
   const view = new URLSearchParams(window.location.search).get('view');
-  return view === 'interactive' || view === 'culture' || view === 'dashboard' ? view : 'dashboard';
+  if (view === 'interactive') {
+    window.location.href = routePath('/interactive');
+    return 'dashboard';
+  }
+  return view === 'culture' || view === 'dashboard' ? view : 'dashboard';
 }
 
 export default function FeatureModules() {
+  const [, setLocation] = useLocation();
   const [activeTeam, setActiveTeam] = useState<FeatureTeam>(featureTeams[0]);
   const [activeView, setActiveView] = useState<ModuleView>(resolveInitialView);
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('overview');
@@ -397,7 +402,13 @@ export default function FeatureModules() {
                     return (
                       <button
                         key={view.id}
-                        onClick={() => setActiveView(view.id)}
+                        onClick={() => {
+                          if (view.id === 'interactive') {
+                            setLocation(routePath('/interactive'));
+                          } else {
+                            setActiveView(view.id);
+                          }
+                        }}
                         className={`rounded-[22px] border p-3 text-left transition ${
                           isActive
                             ? 'border-transparent bg-[linear-gradient(135deg,#8F1F1F,#B83131)] text-white shadow-[0_12px_30px_rgba(143,31,31,0.18)]'
