@@ -160,7 +160,7 @@ export default function Home() {
 
           {/* Right: Desktop nav */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link href={routePath('/modules')}>
+            <Link href={routePath('/interactive')}>
               <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/88 backdrop-blur-md transition hover:bg-white/15">
                 互动中心
               </div>
@@ -177,7 +177,7 @@ export default function Home() {
 
           {/* Mobile: Quick nav */}
           <div className="flex lg:hidden items-center gap-1.5">
-            <Link href={routePath('/modules')}>
+            <Link href={routePath('/interactive')}>
               <div className="rounded-full bg-white/10 border border-white/15 px-2.5 py-1.5 text-[11px] text-white/80 backdrop-blur-sm">
                 互动
               </div>
@@ -378,7 +378,7 @@ function MobileTeamDetail({ team, onClose }: { team: Team; onClose: () => void }
 
       {/* Action buttons */}
       <div className="flex gap-2">
-        <Link href={routePath('/modules')} className="flex-1">
+        <Link href={routePath('/interactive')} className="flex-1">
           <div className="w-full text-center py-2.5 rounded-xl text-sm font-bold text-white touch-manipulation"
             style={{ background: `linear-gradient(135deg, ${team.color}, ${team.color}CC)` }}>
             查看完整数据

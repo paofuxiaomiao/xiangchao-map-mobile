@@ -346,7 +346,7 @@ export default function StatsBar() {
               {/* 跳转到完整模块 */}
               <div className="mt-4 text-right">
                 <Link
-                  href={`${routePath('/modules')}?view=interactive`}
+                  href={routePath('/interactive')}
                   onClick={() => setOpen(false)}
                   className="inline-flex items-center gap-1 text-xs font-bold text-[#D32F2F] hover:text-[#B71C1C] transition-colors"
                 >

@@ -521,8 +521,8 @@ export default function H5Experience() {
 
             <div className="mt-4 flex items-center justify-between gap-2 rounded-full bg-[oklch(0.97_0.003_260)] px-4 py-3 text-sm text-[oklch(0.45_0.02_260)]">
               <span>H5 体验已完成</span>
-              <Link href={routePath('/modules')}>
-                <span className="font-semibold text-[#D32F2F]">查看完整模块页</span>
+              <Link href={routePath('/interactive')}>
+                <span className="font-semibold text-[#D32F2F]">进入互动中心</span>
               </Link>
             </div>
           </div>
