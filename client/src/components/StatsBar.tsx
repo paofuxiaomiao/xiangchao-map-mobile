@@ -134,8 +134,20 @@ export default function StatsBar() {
         })}
       </div>
 
-      {/* 赛程缩略图 Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <ScheduleDialog open={open} onOpenChange={setOpen} />
+    </>
+  );
+}
+
+
+type ScheduleDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function ScheduleDialog({ open, onOpenChange }: ScheduleDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           /*
            * 修复：Tailwind v4 下 shadcn DialogContent 默认的
@@ -144,7 +156,7 @@ export default function StatsBar() {
            *   导致弹窗实际位于视口右下角之外看不见。
            * 对策：不依赖 Tailwind translate 工具类，改用 inline style 强制
            *       transform: translate(-50%, -50%)，同时在 className 里以
-           *       arbitrary 变体 [transform:translate(-50%,-50%)] 保留原公然。
+           *       arbitrary 变体 [transform:translate(-50%,-50%)] 保留原定位。
            */
           style={{ transform: 'translate(-50%, -50%)' }}
           className="!translate-x-0 !translate-y-0 [transform:translate(-50%,-50%)] max-w-2xl w-[calc(100vw-2rem)] p-0 overflow-hidden bg-white border-[oklch(0.92_0.005_260)] sm:rounded-2xl"
@@ -347,7 +359,7 @@ export default function StatsBar() {
               <div className="mt-4 text-right">
                 <Link
                   href={routePath('/interactive')}
-                  onClick={() => setOpen(false)}
+                  onClick={() => onOpenChange(false)}
                   className="inline-flex items-center gap-1 text-xs font-bold text-[#D32F2F] hover:text-[#B71C1C] transition-colors"
                 >
                   查看完整赛程与战报
@@ -358,6 +370,5 @@ export default function StatsBar() {
           </div>
         </DialogContent>
       </Dialog>
-    </>
   );
 }

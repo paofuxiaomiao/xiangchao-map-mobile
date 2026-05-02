@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import HunanMap from '@/components/HunanMap';
 import TeamList from '@/components/TeamList';
 import TeamDetail from '@/components/TeamDetail';
-import StatsBar from '@/components/StatsBar';
+import StatsBar, { ScheduleDialog } from '@/components/StatsBar';
 import { teams, type Team, HERO_BANNER, leagueStats } from '@/data/teams';
 import { Trophy, Map, ArrowLeft, ChevronRight, MapPin, Shield, Medal, ChevronDown, ChevronUp, Flame, Target, Timer, CalendarDays } from 'lucide-react';
 import { projectLogo } from '@/data/feature-data';
@@ -79,6 +79,7 @@ export default function Home() {
   const [activeLifeLayer, setActiveLifeLayer] = useState<LifeLayerKey>('team');
   const [mapResetSignal, setMapResetSignal] = useState(0);
   const [mobileCardCollapsed, setMobileCardCollapsed] = useState(false);
+  const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
   const isMobile = useIsMobile();
   const defaultMobileTeam = teams.find((team) => team.id === 'changsha') ?? teams[0];
   const mobileDisplayTeam = selectedTeam ?? defaultMobileTeam;
@@ -469,6 +470,7 @@ export default function Home() {
                 <MobileCollapsedDashboardBar
                   key="mobile-collapsed-dashboard"
                   onExpand={() => setMobileCardCollapsed(false)}
+                  onOpenSchedule={() => setMobileScheduleOpen(true)}
                 />
               ) : (
                 <motion.div
@@ -622,12 +624,13 @@ export default function Home() {
           </div>
         </div>
       </main>
+      <ScheduleDialog open={mobileScheduleOpen} onOpenChange={setMobileScheduleOpen} />
 
     </div>
   );
 }
 
-function MobileCollapsedDashboardBar({ onExpand }: { onExpand: () => void }) {
+function MobileCollapsedDashboardBar({ onExpand, onOpenSchedule }: { onExpand: () => void; onOpenSchedule: () => void }) {
   const today = (() => {
     const date = new Date();
     return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
@@ -684,11 +687,8 @@ function MobileCollapsedDashboardBar({ onExpand }: { onExpand: () => void }) {
           </Link>
           {statItems.map((item) => {
             const Icon = item.icon;
-            return (
-              <div
-                key={item.label}
-                className="flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-[15px] border border-white/16 bg-white/12 px-3 text-white backdrop-blur-md"
-              >
+            const content = (
+              <>
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/12 text-white/75">
                   <Icon className="h-3.5 w-3.5" />
                 </span>
@@ -700,6 +700,31 @@ function MobileCollapsedDashboardBar({ onExpand }: { onExpand: () => void }) {
                     {item.label}
                   </span>
                 </span>
+              </>
+            );
+
+            if (item.label === '赛程') {
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={onOpenSchedule}
+                  title="点击查看赛程缩略图"
+                  aria-label="查看赛程缩略图"
+                  className="flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-[15px] border border-white/22 bg-white/18 px-3 text-white backdrop-blur-md active:scale-95 transition-transform touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                >
+                  {content}
+                  <ChevronRight className="h-3.5 w-3.5 text-white/65" />
+                </button>
+              );
+            }
+
+            return (
+              <div
+                key={item.label}
+                className="flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-[15px] border border-white/16 bg-white/12 px-3 text-white backdrop-blur-md"
+              >
+                {content}
               </div>
             );
           })}
