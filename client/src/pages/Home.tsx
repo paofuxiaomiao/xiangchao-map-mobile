@@ -15,24 +15,41 @@ import HunanMap from '@/components/HunanMap';
 import TeamList from '@/components/TeamList';
 import TeamDetail from '@/components/TeamDetail';
 import StatsBar from '@/components/StatsBar';
-import LogoBadge from '@/components/LogoBadge';
 import { teams, type Team, HERO_BANNER, leagueStats } from '@/data/teams';
-import { Trophy, Map, ArrowLeft, PanelRightOpen } from 'lucide-react';
+import { Trophy, Map, ArrowLeft } from 'lucide-react';
 import { projectLogo } from '@/data/feature-data';
 import { routePath, assetPath } from '@/lib/sitePaths';
 import { useIsMobile } from '@/hooks/useMobile';
+
+type LifeLayerKey = 'team' | 'stadium' | 'food' | 'hotel' | 'parking' | 'cuisine';
+
+const LIFE_LAYER_OPTIONS: { key: LifeLayerKey; label: string }[] = [
+  { key: 'team', label: '球队' },
+  { key: 'stadium', label: '场馆' },
+  { key: 'food', label: '餐饮' },
+  { key: 'hotel', label: '住宿' },
+  { key: 'parking', label: '停车' },
+  { key: 'cuisine', label: '湘菜' },
+];
 
 export default function Home() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [show3D, setShow3D] = useState(false);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [mobileHubOpen, setMobileHubOpen] = useState(false);
+  const [mobileLifePanelOpen, setMobileLifePanelOpen] = useState(false);
+  const [activeLifeLayer, setActiveLifeLayer] = useState<LifeLayerKey>('team');
   const isMobile = useIsMobile();
+  const defaultMobileTeam = teams.find((team) => team.id === 'changsha') ?? teams[0];
+  const mobileDisplayTeam = selectedTeam ?? defaultMobileTeam;
 
   const handleTeamSelect = useCallback((team: Team | null) => {
     if (team === null) {
       setSelectedTeam(null);
       setShow3D(false);
       setMobilePanelOpen(false);
+      setMobileLifePanelOpen(false);
+      setMobileHubOpen(false);
       return;
     }
 
@@ -40,6 +57,8 @@ export default function Home() {
     setSelectedTeam(isSameTeam ? null : team);
     if (isMobile) {
       setMobilePanelOpen(!isSameTeam);
+      setMobileLifePanelOpen(false);
+      setMobileHubOpen(false);
     }
   }, [isMobile, selectedTeam]);
 
@@ -47,17 +66,39 @@ export default function Home() {
     setSelectedTeam(null);
     setShow3D(false);
     setMobilePanelOpen(false);
+    setMobileLifePanelOpen(false);
+    setMobileHubOpen(false);
+  }, []);
+
+  const handleToggleMobileHub = useCallback(() => {
+    setMobileHubOpen((prev) => !prev);
   }, []);
 
   const handleOpenMobilePanel = useCallback(() => {
     if (!selectedTeam) {
-      setSelectedTeam(teams[0]);
+      setSelectedTeam(defaultMobileTeam);
     }
     setMobilePanelOpen(true);
-  }, [selectedTeam]);
+    setMobileLifePanelOpen(false);
+    setMobileHubOpen(false);
+  }, [defaultMobileTeam, selectedTeam]);
+
+  const handleOpenMobileLifePanel = useCallback(() => {
+    if (!selectedTeam) {
+      setSelectedTeam(defaultMobileTeam);
+    }
+    setActiveLifeLayer('team');
+    setMobilePanelOpen(false);
+    setMobileLifePanelOpen(true);
+    setMobileHubOpen(false);
+  }, [defaultMobileTeam, selectedTeam]);
 
   const handleCloseMobilePanel = useCallback(() => {
     setMobilePanelOpen(false);
+  }, []);
+
+  const handleCloseMobileLifePanel = useCallback(() => {
+    setMobileLifePanelOpen(false);
   }, []);
 
   const handleToggle3D = useCallback(() => {
@@ -67,6 +108,9 @@ export default function Home() {
   const handleResetView = useCallback(() => {
     setShow3D(false);
     setSelectedTeam(null);
+    setMobilePanelOpen(false);
+    setMobileLifePanelOpen(false);
+    setMobileHubOpen(false);
   }, []);
 
   return (
@@ -236,31 +280,55 @@ export default function Home() {
             onResetView={handleResetView}
           />
 
-          {/* Mobile: floating entry to restore the original right-side team panel */}
-          <button
-            onClick={handleOpenMobilePanel}
-            className="lg:hidden absolute left-3 top-3 z-[1180] h-12 w-12 rounded-full border-2 border-white/90 bg-white/92 shadow-[0_12px_28px_rgba(15,23,42,0.18)] backdrop-blur-xl flex items-center justify-center active:scale-95 transition-transform touch-manipulation"
-            aria-label="打开球队详情侧栏"
-            title="打开球队详情"
-            style={{ boxShadow: `0 12px 28px ${(selectedTeam?.color ?? '#D32F2F')}28` }}
-          >
-            {selectedTeam ? (
-              <img
-                src={assetPath(`assets/badges/${selectedTeam.id}.jpg`)}
-                alt={selectedTeam.name}
-                className="h-9 w-9 rounded-full object-cover"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-            ) : (
-              <PanelRightOpen className="h-5 w-5 text-[#D32F2F]" />
-            )}
-            <span
-              className="absolute -right-1 -bottom-1 h-5 w-5 rounded-full border border-white bg-[#D32F2F] text-[10px] font-black leading-5 text-white"
-              style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+          {/* Mobile: Xiangchao ball hub with match/life quick actions */}
+          <div className="lg:hidden absolute left-3 top-3 z-[1180]">
+            <button
+              onClick={handleToggleMobileHub}
+              className={`relative h-14 w-14 rounded-full border-2 border-white/90 bg-white/95 shadow-[0_14px_30px_rgba(15,23,42,0.18)] backdrop-blur-xl flex items-center justify-center active:scale-95 transition-transform touch-manipulation ${mobileHubOpen ? 'scale-105' : ''}`}
+              aria-label="打开湘超地图快捷菜单"
+              title="湘超地图快捷菜单"
+              style={{ boxShadow: `0 14px 30px ${(selectedTeam?.color ?? '#D32F2F')}2F` }}
             >
-              详
-            </span>
-          </button>
+              <span className="absolute inset-1 rounded-full bg-gradient-to-br from-[#FF4D4F] via-[#D32F2F] to-[#8B0000] opacity-95" />
+              <span className="absolute inset-[6px] rounded-full border border-white/35" />
+              <img src={projectLogo} alt="湘超" className="relative z-10 h-8 w-8 object-contain drop-shadow" />
+              <span
+                className="absolute -right-1 -bottom-1 h-5 min-w-5 rounded-full border border-white bg-white px-1 text-[9px] font-black leading-5 text-[#D32F2F]"
+                style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+              >
+                球
+              </span>
+            </button>
+
+            <AnimatePresence>
+              {mobileHubOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.82, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.82, y: -8 }}
+                  transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+                  className="absolute left-[3px] top-16 flex flex-col gap-2"
+                >
+                  <button
+                    onClick={handleOpenMobilePanel}
+                    className="h-12 w-12 rounded-full border-2 border-white bg-[#D32F2F] text-[12px] font-black text-white shadow-[0_10px_24px_rgba(211,47,47,0.28)] active:scale-95 touch-manipulation"
+                    style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+                    aria-label="打开赛事数据"
+                  >
+                    赛事
+                  </button>
+                  <button
+                    onClick={handleOpenMobileLifePanel}
+                    className="h-12 w-12 rounded-full border-2 border-white bg-emerald-500 text-[12px] font-black text-white shadow-[0_10px_24px_rgba(16,185,129,0.28)] active:scale-95 touch-manipulation"
+                    style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+                    aria-label="打开生活服务图层"
+                  >
+                    生活
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           <AnimatePresence>
             {isMobile && mobilePanelOpen && selectedTeam && (
@@ -285,6 +353,37 @@ export default function Home() {
                   <div className="relative h-full w-full overflow-hidden rounded-l-[28px] shadow-[-20px_0_45px_rgba(15,23,42,0.22)]">
                     <TeamDetail team={selectedTeam} onClose={handleCloseMobilePanel} />
                   </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {isMobile && mobileLifePanelOpen && (
+              <>
+                <motion.button
+                  key="mobile-life-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={handleCloseMobileLifePanel}
+                  className="fixed inset-0 z-[1190] bg-white/15 backdrop-blur-[2px] lg:hidden"
+                  aria-label="关闭生活服务图层遮罩"
+                />
+                <motion.div
+                  key="mobile-life-panel"
+                  initial={{ opacity: 0, y: 28, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.96 }}
+                  transition={{ type: 'spring', damping: 24, stiffness: 230 }}
+                  className="fixed inset-x-3 top-[82px] bottom-5 z-[1200] lg:hidden"
+                >
+                  <MobileLifeServicePanel
+                    team={mobileDisplayTeam}
+                    activeLayer={activeLifeLayer}
+                    onLayerChange={setActiveLifeLayer}
+                    onClose={handleCloseMobileLifePanel}
+                  />
                 </motion.div>
               </>
             )}
@@ -371,6 +470,151 @@ export default function Home() {
       {/* Mobile stats bar - simplified */}
       <div className="lg:hidden shrink-0 border-t border-[oklch(0.90_0.005_260)] bg-white px-3 py-1.5 overflow-x-auto">
         <StatsBar />
+      </div>
+    </div>
+  );
+}
+
+function getLifeLayerCopy(layer: LifeLayerKey, team: Team) {
+  const cityName = team.city.replace('市', '');
+
+  switch (layer) {
+    case 'stadium':
+      return {
+        category: '场馆',
+        title: team.stadium,
+        highlight: '主场观赛动线担当',
+        description: `围绕${team.stadium}聚合入场口、看台区、安检口和赛后疏散建议，帮助球迷快速找到观赛路径。`,
+      };
+    case 'food':
+      return {
+        category: '餐饮',
+        title: `${cityName}赛前补给`,
+        highlight: '场馆周边餐饮推荐',
+        description: `展示主场周边适合赛前聚餐与赛后宵夜的餐饮点位，优先突出步行可达和本地热门商圈。`,
+      };
+    case 'hotel':
+      return {
+        category: '住宿',
+        title: `${cityName}观赛住宿`,
+        highlight: '客队球迷友好住处',
+        description: `聚合靠近球场、交通节点和城市核心区的住宿信息，方便外地球迷规划一晚或周末观赛行程。`,
+      };
+    case 'parking':
+      return {
+        category: '停车',
+        title: `${team.stadium}停车指南`,
+        highlight: '赛时交通疏导辅助',
+        description: `展示球场周边停车场、临停区和换乘点，配合地图缩放可快速判断自驾与公共交通方案。`,
+      };
+    case 'cuisine':
+      return {
+        category: '湘菜',
+        title: `${cityName}地道湘味`,
+        highlight: '城市文旅味觉名片',
+        description: `把本地代表湘菜、夜市和特色小吃纳入生活图层，让球迷在观赛之外继续探索城市烟火气。`,
+      };
+    case 'team':
+    default:
+      return {
+        category: '球队',
+        title: team.fullName,
+        highlight: `${team.rankLabel}主场热度担当`,
+        description: `球队以速度与压迫感见长，主场话题度和球迷黏性都很高。当前积分${team.stats.points}分，进失球为${team.stats.goalsFor}/${team.stats.goalsAgainst}。`,
+      };
+  }
+}
+
+function MobileLifeServicePanel({
+  team,
+  activeLayer,
+  onLayerChange,
+  onClose,
+}: {
+  team: Team;
+  activeLayer: LifeLayerKey;
+  onLayerChange: (layer: LifeLayerKey) => void;
+  onClose: () => void;
+}) {
+  const layerCopy = getLifeLayerCopy(activeLayer, team);
+
+  return (
+    <div className="h-full overflow-y-auto rounded-[30px] border border-white/80 bg-white/96 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.20)] backdrop-blur-xl">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium tracking-[0.12em] text-[oklch(0.46_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+            {team.name}示例
+          </p>
+          <h2 className="mt-2 text-[26px] font-black leading-tight text-[oklch(0.16_0.02_260)]" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+            {team.name}服务图层示例
+          </h2>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full bg-[#D32F2F]/8 px-3 py-1.5 text-xs font-black text-[#D32F2F]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+            已集成到地图
+          </span>
+          <button
+            onClick={onClose}
+            className="h-11 w-11 rounded-full border border-[oklch(0.88_0.005_260)] bg-white text-2xl font-light leading-none text-[oklch(0.30_0.02_260)] shadow-sm active:scale-95"
+            aria-label="关闭生活服务图层"
+          >
+            ‹
+          </button>
+        </div>
+      </div>
+
+      <p className="mt-5 text-[16px] font-medium leading-8 text-[oklch(0.36_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+        这里先以{team.name}做交互样例。切换图层后，地图会自动聚焦{team.stadium}周边，并通过点位弹窗展示球队、场馆和周边服务信息。拖动、缩放或点击地图时，图例会自动收起，减少对地图视野的遮挡。
+      </p>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        {LIFE_LAYER_OPTIONS.map((option) => {
+          const isActive = option.key === activeLayer;
+          return (
+            <button
+              key={option.key}
+              onClick={() => onLayerChange(option.key)}
+              className={`rounded-full border px-5 py-3 text-base font-black transition-all active:scale-95 ${
+                isActive
+                  ? 'border-transparent bg-[#FF4D4F] text-white shadow-[0_10px_24px_rgba(255,77,79,0.26)]'
+                  : 'border-[oklch(0.88_0.005_260)] bg-white text-[oklch(0.24_0.02_260)] shadow-sm'
+              }`}
+              style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-8 rounded-[28px] border border-[oklch(0.88_0.005_260)] bg-[oklch(0.985_0.002_260)] p-5 shadow-inner">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium tracking-[0.2em] text-[oklch(0.56_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+              {layerCopy.category}
+            </p>
+            <h3 className="mt-3 text-[24px] font-black leading-snug text-[oklch(0.16_0.02_260)]" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+              {layerCopy.title}
+            </h3>
+            <p className="mt-3 text-base font-black text-[#D32F2F]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+              {layerCopy.highlight}
+            </p>
+          </div>
+          <div
+            className="h-20 w-20 shrink-0 rounded-[22px] shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${team.color}, ${team.color}B8)` }}
+          />
+        </div>
+
+        <p className="mt-5 text-[17px] font-medium leading-8 text-[oklch(0.34_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+          {layerCopy.description}
+        </p>
+
+        <div className="mt-6 rounded-[22px] bg-white p-4 shadow-[0_16px_42px_rgba(15,23,42,0.07)]">
+          <p className="text-[15px] font-medium leading-8 text-[oklch(0.34_0.02_260)]" style={{ fontFamily: "'Noto Sans SC', sans-serif" }}>
+            交互方式：点击图层按钮切换点位；点击地图地标打开弹窗；球队与场馆层可联动右侧赛事详情面板，服务层则聚焦商家简介与观赛动线。
+          </p>
+        </div>
       </div>
     </div>
   );
