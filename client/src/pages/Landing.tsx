@@ -16,10 +16,11 @@ import { useLocation } from 'wouter';
 import { teams, leagueStats } from '@/data/teams';
 import LogoBadge from '@/components/LogoBadge';
 import { MapPin, Trophy, Flame, ChevronDown, ArrowRight, Users, Timer, TrendingUp, Zap, Star, Crown } from 'lucide-react';
-import { routePath } from '@/lib/sitePaths';
+import { assetPath, routePath } from '@/lib/sitePaths';
 
 // CDN image URLs
 const HERO_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-hero-LFmanHYhXsky4PD5ZGP4s4.webp';
+const TIANDITU_LOGO = assetPath('assets/tianditu-logo.png');
 const CROWD_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-crowd-fFJA9QH5ZrA4J5kdzVhRaD.webp';
 const ACTION_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-action-GNWSyNsvVaYp6kQGdW67Yy.webp';
 const TROPHY_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-trophy-juw6ePB9k7UFS6GB9A9hKz.webp';
@@ -110,6 +111,21 @@ export default function Landing() {
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{
           backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")',
         }} />
+
+        {/* Tianditu logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: heroLoaded ? 1 : 0, y: heroLoaded ? 0 : -8 }}
+          transition={{ delay: 0.35, duration: 0.6 }}
+          className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+16px)] z-20 rounded-2xl border border-white/20 bg-white/88 px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:right-6 sm:top-6 sm:px-4"
+          aria-label="天地图"
+        >
+          <img
+            src={TIANDITU_LOGO}
+            alt="天地图 LOGO"
+            className="block h-auto w-[118px] object-contain sm:w-[150px]"
+          />
+        </motion.div>
 
         {/* Content */}
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 text-center px-6 max-w-5xl mx-auto">
