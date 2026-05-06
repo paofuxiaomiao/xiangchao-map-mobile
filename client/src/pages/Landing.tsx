@@ -14,7 +14,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'wouter';
 import { teams, leagueStats } from '@/data/teams';
-import LogoBadge from '@/components/LogoBadge';
 import { MapPin, Trophy, Flame, ChevronDown, ArrowRight, Users, Timer, TrendingUp, Zap, Star, Crown } from 'lucide-react';
 import { assetPath, routePath } from '@/lib/sitePaths';
 
@@ -112,20 +111,6 @@ export default function Landing() {
           backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")',
         }} />
 
-        {/* Tianditu logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: heroLoaded ? 1 : 0, y: heroLoaded ? 0 : -8 }}
-          transition={{ delay: 0.35, duration: 0.6 }}
-          className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+16px)] z-20 drop-shadow-[0_8px_22px_rgba(0,0,0,0.38)] sm:right-6 sm:top-6"
-          aria-label="天地图"
-        >
-          <img
-            src={TIANDITU_LOGO}
-            alt="天地图 LOGO"
-            className="block h-auto w-[132px] object-contain sm:w-[168px]"
-          />
-        </motion.div>
 
         {/* Content */}
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 text-center px-6 max-w-5xl mx-auto">
@@ -139,8 +124,26 @@ export default function Landing() {
                 transition={{ delay: 0.45, duration: 0.8 }}
                 className="mb-8 flex justify-center"
               >
-                <div className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-xl">
-                  <LogoBadge light subtitle="湖南地理信息服务" />
+                <div className="flex items-center gap-4 rounded-[28px] border border-white/18 bg-black/24 px-5 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:px-6">
+                  <img
+                    src={TIANDITU_LOGO}
+                    alt="天地图·湖南"
+                    className="block h-auto w-[112px] object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.30)] sm:w-[144px]"
+                  />
+                  <div className="text-left">
+                    <div
+                      className="text-xl font-black tracking-wide text-white sm:text-2xl"
+                      style={{ fontFamily: "'Noto Serif SC', serif" }}
+                    >
+                      天地图·湖南
+                    </div>
+                    <p
+                      className="mt-1 whitespace-nowrap text-xs font-medium tracking-[0.08em] text-white/76 sm:text-sm"
+                      style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
+                    >
+                      湖南地理信息公共服务平台
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             )}
