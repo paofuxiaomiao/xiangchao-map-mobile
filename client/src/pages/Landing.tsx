@@ -19,7 +19,7 @@ import { assetPath, routePath } from '@/lib/sitePaths';
 
 // CDN image URLs
 const HERO_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-hero-LFmanHYhXsky4PD5ZGP4s4.webp';
-const TIANDITU_LOGO = assetPath('assets/tianditu-globe.png');
+const TIANDITU_LOGO = assetPath('assets/tianditu-logo.png');
 const CROWD_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-crowd-fFJA9QH5ZrA4J5kdzVhRaD.webp';
 const ACTION_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-action-GNWSyNsvVaYp6kQGdW67Yy.webp';
 const TROPHY_IMG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663486523138/6NztyHB5jaNJh8ykWoD3oc/landing-trophy-juw6ePB9k7UFS6GB9A9hKz.webp';
@@ -128,10 +128,10 @@ export default function Landing() {
                   <img
                     src={TIANDITU_LOGO}
                     alt="天地图·湖南"
-                    className="block h-auto w-[52px] object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.30)] sm:w-[64px]"
+                    className="block h-auto w-[112px] object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,0.30)] sm:w-[144px]"
                   />
                   <p
-                    className="whitespace-nowrap text-sm font-medium tracking-[0.12em] text-white/80 sm:text-base"
+                    className="whitespace-nowrap text-xs font-medium tracking-[0.08em] text-white/76 sm:text-sm"
                     style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
                   >
                     湖南地理信息公共服务平台
