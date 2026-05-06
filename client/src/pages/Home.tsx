@@ -32,7 +32,6 @@ const LIFE_LAYER_OPTIONS: { key: LifeLayerKey; label: string }[] = [
   { key: 'cuisine', label: '湘菜' },
 ];
 
-const TIANDITU_LOGO = assetPath('assets/tianditu-logo.png');
 
 const TOP_RANK_MEDALS: Record<number, {
   label: string;
@@ -334,14 +333,6 @@ export default function Home() {
             resetViewSignal={mapResetSignal}
           />
 
-          {/* Mobile: Tianditu attribution logo */}
-          <div className="pointer-events-none absolute right-3 top-[76px] z-[700] lg:hidden rounded-xl border border-white/85 bg-white/92 px-2.5 py-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.14)] backdrop-blur-md">
-            <img
-              src={TIANDITU_LOGO}
-              alt="天地图 LOGO"
-              className="block h-auto w-[118px] object-contain"
-            />
-          </div>
 
           {/* Mobile: Xiangchao ball hub with match/life quick actions */}
           <div className="lg:hidden absolute left-3 top-3 z-[1180]">
