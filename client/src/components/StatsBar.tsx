@@ -98,10 +98,10 @@ export default function StatsBar() {
                   <span className="text-white font-bold text-sm" style={{ fontFamily: "'DM Mono', monospace" }}>
                     {stat.value}
                   </span>
-                  {stat.suffix && <span className="text-[10px] text-white/50">{stat.suffix}</span>}
+                  {stat.suffix && <span className="text-[10px] text-white/80">{stat.suffix}</span>}
                   {stat.isSchedule && <ChevronRight className="w-3 h-3 text-white/60 ml-0.5" />}
                 </div>
-                <span className="text-[9px] text-white/45 tracking-wider">{stat.label}</span>
+                <span className="text-[9px] text-white/75 tracking-wider font-medium">{stat.label}</span>
               </div>
             </>
           );
