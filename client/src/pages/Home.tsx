@@ -334,23 +334,23 @@ export default function Home() {
           />
 
 
-          {/* Mobile: Xiangchao ball hub with match/life quick actions */}
+          {/* Mobile: Tianditu globe hub with match/life quick actions */}
           <div className="lg:hidden absolute left-3 top-3 z-[1180]">
             <button
               onClick={handleToggleMobileHub}
               className={`relative h-14 w-14 rounded-full border-2 border-white/90 bg-white/95 shadow-[0_14px_30px_rgba(15,23,42,0.18)] backdrop-blur-xl flex items-center justify-center active:scale-95 transition-transform touch-manipulation ${mobileHubOpen ? 'scale-105' : ''}`}
-              aria-label="打开湘超地图快捷菜单"
-              title="湘超地图快捷菜单"
+              aria-label="打开地图快捷菜单"
+              title="地图快捷菜单"
               style={{ boxShadow: `0 14px 30px ${(selectedTeam?.color ?? '#D32F2F')}2F` }}
             >
-              <span className="absolute inset-1 rounded-full bg-gradient-to-br from-[#FF4D4F] via-[#D32F2F] to-[#8B0000] opacity-95" />
+              <span className="absolute inset-1 rounded-full bg-gradient-to-br from-[#0B2A44] via-[#0E4F72] to-[#1A7E9D] opacity-95" />
               <span className="absolute inset-[6px] rounded-full border border-white/35" />
-              <img src={projectLogo} alt="湘超" className="relative z-10 h-8 w-8 object-contain drop-shadow" />
+              <img src={assetPath('assets/tianditu-globe.png')} alt="天地图地球图案" className="relative z-10 h-9 w-9 object-contain drop-shadow" />
               <span
-                className="absolute -right-1 -bottom-1 h-5 min-w-5 rounded-full border border-white bg-white px-1 text-[9px] font-black leading-5 text-[#D32F2F]"
+                className="absolute -right-1 -bottom-1 h-5 min-w-5 rounded-full border border-white bg-white px-1 text-[9px] font-black leading-5 text-[#0E4F72]"
                 style={{ fontFamily: "'Noto Sans SC', sans-serif" }}
               >
-                球
+                图
               </span>
             </button>
 
