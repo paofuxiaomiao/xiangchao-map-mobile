@@ -117,13 +117,13 @@ export default function Landing() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: heroLoaded ? 1 : 0, y: heroLoaded ? 0 : -8 }}
           transition={{ delay: 0.35, duration: 0.6 }}
-          className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+16px)] z-20 rounded-2xl border border-white/20 bg-white/88 px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:right-6 sm:top-6 sm:px-4"
+          className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+16px)] z-20 drop-shadow-[0_8px_22px_rgba(0,0,0,0.38)] sm:right-6 sm:top-6"
           aria-label="天地图"
         >
           <img
             src={TIANDITU_LOGO}
             alt="天地图 LOGO"
-            className="block h-auto w-[118px] object-contain sm:w-[150px]"
+            className="block h-auto w-[132px] object-contain sm:w-[168px]"
           />
         </motion.div>
 
