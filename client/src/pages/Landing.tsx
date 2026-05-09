@@ -15,6 +15,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useLocation } from 'wouter';
 import { teams, leagueStats } from '@/data/teams';
 import { MapPin, Trophy, Flame, ChevronDown, ArrowRight, Users, Timer, TrendingUp, Zap, Star, Crown } from 'lucide-react';
+import TopGoals from '@/components/TopGoals';
 import { assetPath, routePath } from '@/lib/sitePaths';
 
 // CDN image URLs
@@ -356,6 +357,9 @@ export default function Landing() {
           </motion.div>
         </div>
       </section>
+
+      {/* ===== 十佳进球展示栏 ===== */}
+      <TopGoals />
 
       {/* ===== 2026赛季即将开启提示卡片 ===== */}
       <section className="relative py-10 sm:py-16 overflow-hidden">
