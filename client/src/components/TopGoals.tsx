@@ -7,6 +7,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Play, ChevronLeft, ChevronRight, Flame, Timer, Target, Zap } from 'lucide-react';
 import { topGoals, type TopGoal } from '@/data/top-goals';
+import { assetPath } from '@/lib/sitePaths';
 
 function GoalCard({ goal, isActive, onClick }: { goal: TopGoal; isActive: boolean; onClick: () => void }) {
   return (
@@ -22,18 +23,30 @@ function GoalCard({ goal, isActive, onClick }: { goal: TopGoal; isActive: boolea
       <div
         className={`relative h-[280px] sm:h-[320px] rounded-2xl border overflow-hidden transition-all duration-500 ${
           isActive
-            ? 'border-white/20 bg-white/[0.05] shadow-2xl shadow-black/40'
-            : 'border-white/5 bg-white/[0.02] hover:border-white/10'
+            ? 'border-white/20 shadow-2xl shadow-black/40'
+            : 'border-white/5 hover:border-white/10'
         }`}
       >
+        {/* Background image */}
+        <div className="absolute inset-0">
+          <img
+            src={assetPath(goal.image)}
+            alt={`${goal.player} - ${goal.goalType}`}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+        </div>
+
         {/* Top gradient accent */}
         <div
-          className="absolute top-0 left-0 right-0 h-1 opacity-80"
+          className="absolute top-0 left-0 right-0 h-1 opacity-80 z-10"
           style={{ background: `linear-gradient(90deg, transparent, ${goal.teamColor}, transparent)` }}
         />
 
         {/* Rank badge */}
-        <div className="absolute top-4 left-4 flex items-center gap-2">
+        <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black"
             style={{
@@ -49,7 +62,7 @@ function GoalCard({ goal, isActive, onClick }: { goal: TopGoal; isActive: boolea
         </div>
 
         {/* Goal type tag */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 z-10">
           <span
             className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider border"
             style={{
@@ -63,7 +76,7 @@ function GoalCard({ goal, isActive, onClick }: { goal: TopGoal; isActive: boolea
         </div>
 
         {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-end p-5">
+        <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
           {/* Player & Team */}
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-1">
@@ -119,9 +132,9 @@ function GoalCard({ goal, isActive, onClick }: { goal: TopGoal; isActive: boolea
         </div>
 
         {/* Background decorative elements */}
-        <div className="absolute top-12 right-4 opacity-[0.03]">
+        <div className="absolute top-12 right-4 opacity-[0.06] z-10">
           <span
-            className="text-[80px] font-black"
+            className="text-[80px] font-black text-white"
             style={{ fontFamily: "'Bebas Neue', sans-serif" }}
           >
             {goal.rank}
